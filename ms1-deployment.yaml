@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms1-deployment
+  labels:
+    component: ms1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        component: ms1
+  template:
+    metadata:
+      labels:
+        component: ms1
+    spec:
+      containers:
+      - name: ms1
+        image: sannaman/ms1
+        ports:
+        - containerPort: 9091
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms1
+spec:
+  type: ClusterIP
+  ports:
+      - port: 9091
+        targetPort: 9091
+#        nodePort: 31591
+  selector: 
+      component: ms1
