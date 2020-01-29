@@ -1,46 +1,38 @@
-pipeline {
-
-  environment {
-    registry = "192.168.1.81:5000/justme/myweb"
-    dockerImage = ""
-  }
-
-  agent any
-
-  stages {
-
-    stage('Checkout Source') {
-      steps {
-        git 'https://github.com/justmeandopensource/playjenkins.git'
-      }
+node{
+     
+    stage('SCM Checkout'){
+        git credentialsId: 'GIT_CREDENTIALS_NEW', url:  'https://github.com/sannaman/ms1.git',branch: 'master'
     }
-
-    stage('Build image') {
-      steps{
-        script {
-          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+    
+    stage(" Maven Clean Package"){
+      def mavenHome =  tool name: "Maven-3.6.3", type: "maven"
+      def mavenCMD = "${mavenHome}/bin/mvn"
+      sh "${mavenCMD} clean package"
+      
+    } 
+    
+    stage('Build Docker Image'){
+        sh 'docker build -t sannaman/ms1 .'
+    }
+    
+    stage('Push Docker Image'){
+        withCredentials([string(credentialsId: 'DOKCER_HUB_PASSWORD', variable: 'DOKCER_HUB_PASSWORD')]) {
+          sh "docker login -u sannaman -p ${DOKCER_HUB_PASSWORD}"
         }
-      }
-    }
-
-    stage('Push Image') {
-      steps{
-        script {
-          docker.withRegistry( "" ) {
-            dockerImage.push()
-          }
-        }
-      }
-    }
-
-    stage('Deploy App') {
-      steps {
-        script {
-          kubernetesDeploy(configs: "myweb.yaml", kubeconfigId: "mykubeconfig")
-        }
-      }
-    }
-
-  }
-
+        sh 'docker push sannaman/ms3'
+     }
+    /**  
+     stage("Deploy To Kuberates Cluster"){
+       kubernetesDeploy(
+         configs: 'ms1-deployment.yaml', 
+         kubeconfigId: 'KUBERNATES_CONFIG',
+         enableConfigSubstitution: true
+        )
+     }**/
+	 
+	 
+      stage("Deploy To Kuberates Cluster"){
+        sh 'kubectl apply -f k8s/ms1-deployment.yaml'
+      } 
+     
 }
