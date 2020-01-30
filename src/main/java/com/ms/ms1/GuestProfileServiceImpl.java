@@ -16,7 +16,7 @@ public class GuestProfileServiceImpl {
 		GuestProfileDTO dto = new GuestProfileDTO();
 		dto.setAddressDTO(guestAddress);
 		dto.setName(id);
-		dto.setOccupation("Army");
+		dto.setOccupation("Software Employee");
 
 		return dto;
 	}
